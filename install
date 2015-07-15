@@ -1,0 +1,11 @@
+#!/bin/bash
+
+source "$(dirname $0)/vars"
+
+docker pull $DB_IMAGE_NAME
+
+# Create .neo4j directory if does not exist
+if [[ ! -d "$DB_ROOT" ]]; then
+    mkdir -p "$DB_ROOT"
+    chown -R dokku: "$DB_ROOT"
+fi

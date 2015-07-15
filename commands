@@ -1,0 +1,54 @@
+#!/bin/bash
+source "$(dirname $0)/vars"
+
+case "$1" in
+  neo4j:create)
+    neo4j_for_app "$2"
+    verify_max_args 2 "$@"
+    
+    touch "$DB_VOLUME"
+    info "Neo4j database created: $DB_CONTAINER_NAME"
+    redeploy_app "$APP"
+    ;;
+  neo4j:destroy|neo4j:delete)
+    neo4j_for_app "$2"    
+    verify_max_args 2 "$@"
+
+    stop_and_remove_container "$DB_CONTAINER_NAME" "$DB_DATA_CONTAINER_NAME"
+    rm -f "$DB_VOLUME"
+    info "Neo4j database deleted: $DB_CONTAINER_NAME"
+    redeploy_app "$APP"
+    ;;
+  neo4j:shell|neo4j:console)
+    neo4j_for_app "$2"
+    
+    [[ ! -f "$DB_VOLUME" ]] && fail "$DB_CONTAINER_NAME: database is not linked to $APP"
+
+    docker exec -it "$DB_CONTAINER_NAME" "/usr/bin/neo4j-shell" "${@:2}"
+    ;;    
+  neo4j:info)
+    neo4j_for_app "$2"
+    verify_max_args 2 "$@"
+
+    [[ ! -f "$DB_VOLUME" ]] && fail "$DB_CONTAINER_NAME: database is not linked to $APP"
+
+    cat <<EOF
+NEO4J_REST_URL=$DB_REST_URL
+EOF
+    ;;
+
+  help)
+    cat && cat<<EOF
+    neo4j:create <app> Add Neo4j config to the app environment
+    neo4j:destroy <app> Remove Neo4j config and container from the app environment
+    neo4j:info <app> Shows status of Neo4j
+EOF
+#      neo4j:link   <app> <container> Link an app to a neo4j container
+#      neo4j:enter  <app>   enter the neo4j-shell
+    ;;
+
+  *)
+    exit $DOKKU_NOT_IMPLEMENTED_EXIT
+    ;;
+    
+esac

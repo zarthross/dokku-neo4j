@@ -1,0 +1,36 @@
+#!/bin/bash
+source "$(dirname $0)/../dokku_common"
+
+DB_ROOT="$DOKKU_ROOT/.neo4j"
+DB_IMAGE_NAME="tpires/neo4j"
+DB_IMAGE_ID=$(docker images |grep "$DB_IMAGE_NAME" | awk '{print $3'})
+DB_CONTAINER_LINK="neo4j"
+DB_CONTAINER_VOLUME="${NEO4J_CONTAINER_VOLUME:-/var/lib/neo4j/data}"
+DB_PORT="${NEO4J_PORT:-7474}"
+
+function neo4j_for_app() {
+  verify_app_name "$1"
+  DB_VOLUME="$DB_ROOT/$APP"
+  DB_CONTAINER_NAME="plugin_neo4j_${APP}"
+  DB_DATA_CONTAINER_NAME="plugin_neo4j_data_$APP"
+  #DB_PASSWORD_FILE="$DB_VOLUME/pass_$APP"
+  DB_HOST="$DB_CONTAINER_LINK"
+  DB_REST_URL="http://$DB_CONTAINER_LINK:$DB_PORT/db/data"
+}
+
+function start_database_container() {
+  docker run --name="$DB_DATA_CONTAINER_NAME" \
+             -v "$DB_CONTAINER_VOLUME" \
+             busybox:latest true 1> /dev/null 2> /dev/null || true
+
+	docker run --detach \
+	           -e NEO4J_AUTH=none \
+             --name="$DB_CONTAINER_NAME" \
+             --volumes-from="$DB_DATA_CONTAINER_NAME" \
+             "$DB_IMAGE_NAME" 1> /dev/null 2> /dev/null
+}
+
+function ensure_database_container_is_running() {
+  remove_container "$DB_CONTAINER_NAME"
+  start_database_container #2> /dev/null || true
+}
