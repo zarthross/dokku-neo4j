@@ -3,7 +3,6 @@ source "$(dirname $0)/../dokku_common"
 
 DB_ROOT="$DOKKU_ROOT/.neo4j"
 DB_IMAGE_NAME="tpires/neo4j"
-DB_IMAGE_ID=$(docker images |grep "$DB_IMAGE_NAME" | awk '{print $3'})
 DB_CONTAINER_LINK="neo4j"
 DB_CONTAINER_VOLUME="${NEO4J_CONTAINER_VOLUME:-/var/lib/neo4j/data}"
 DB_PORT="${NEO4J_PORT:-7474}"
