@@ -16,3 +16,4 @@ As a pre-requisite, your app must already exist. Create a new Neo4j database by 
     neo4j:create <app>                              Add Neo4j config to the app environment
     neo4j:destroy <app>                             Remove Neo4j config and container from the app environment
     neo4j:info <app>                                Shows status of Neo4j
+	neo4j:shell <app>                               Enter the neo4j-shell inside the neo4j container
