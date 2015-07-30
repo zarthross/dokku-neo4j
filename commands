@@ -24,7 +24,7 @@ case "$1" in
     
     [[ ! -f "$DB_VOLUME" ]] && fail "$DB_CONTAINER_NAME: database is not linked to $APP"
 
-    docker exec -i "$DB_CONTAINER_NAME" "/usr/bin/neo4j-shell" "${@:2}"
+    docker exec -it "$DB_CONTAINER_NAME" "/usr/bin/neo4j-shell" "${@:2}"
     ;;    
   neo4j:info)
     neo4j_for_app "$2"
