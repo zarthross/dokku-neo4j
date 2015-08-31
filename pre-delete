@@ -2,5 +2,9 @@
 source "$(dirname $0)/vars"
 
 neo4j_for_app "$1"
-remove_container "$DB_CONTAINER_NAME" "$DB_DATA_CONTAINER_NAME"
-rm -rf "$DB_VOLUME"
+
+# If this is the original app, then we can delete the database
+if [[ ! -s "$DB_VOLUME"]]; then
+	remove_container "$DB_CONTAINER_NAME" "$DB_DATA_CONTAINER_NAME"
+	rm -rf "$DB_VOLUME"
+fi

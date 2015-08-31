@@ -5,18 +5,54 @@ case "$1" in
   neo4j:create)
     neo4j_for_app "$2"
     verify_max_args 2 "$@"
-    
-    touch "$DB_VOLUME"
-    info "Neo4j database created: $DB_CONTAINER_NAME"
-    redeploy_app "$APP"
+ 
+    if [[ -f "$DB_VOLUME" ]] ; then
+      info "Neo4j database container $DB_CONTAINER_NAME already linked to $APP"
+    else
+   
+      touch "$DB_VOLUME"
+      info "Neo4j database created: $DB_CONTAINER_NAME"
+      redeploy_app "$APP"
+    fi
     ;;
   neo4j:destroy|neo4j:delete)
     neo4j_for_app "$2"    
     verify_max_args 2 "$@"
+    
+    if [ ! -s "$DB_VOLUME" ] && [ -f "$DB_VOLUME" ] ; then
+        stop_and_remove_container "$DB_CONTAINER_NAME" "$DB_DATA_CONTAINER_NAME"
+        rm -f "$DB_VOLUME"
+        info "Neo4j database deleted: $DB_CONTAINER_NAME"
+        redeploy_app "$APP"
+    elif [[ -f "$DB_VOLUME" ]] ; then
+        info "This application is linked to the database created on $DB_APP"
+        info "You can only delete the database by removing it from $DB_APP"
+    else
+        info "There is not a neo4j database associated with this application"
+    fi
+    ;;
+  neo4j:link)
+    verify_max_args 3 "$@"
+    verify_app_name "$3"
+    verify_app_name "$2"
 
-    stop_and_remove_container "$DB_CONTAINER_NAME" "$DB_DATA_CONTAINER_NAME"
+    neo4j_for_app "$2"
+
+    if [[ -f "$DB_VOLUME" ]] ; then
+      info "Neo4j database container $DB_CONTAINER_NAME already linked to $APP"
+    else
+      echo "$3" > $DB_VOLUME
+      neo4j_for_app "$2"
+      info "Neo4j database linked: $DB_CONTAINER_NAME to $APP"
+      redeploy_app "$APP"
+    fi 
+    ;;
+  neo4j:unlink)
+    verify_max_args 2 "$@"
+    neo4j_for_app "$2"
+
     rm -f "$DB_VOLUME"
-    info "Neo4j database deleted: $DB_CONTAINER_NAME"
+    info "Neo4j database unlinked: $DB_CONTAINER_NAME from $APP"
     redeploy_app "$APP"
     ;;
   neo4j:shell|neo4j:console)
@@ -41,6 +77,7 @@ EOF
     cat && cat<<EOF
     neo4j:create <app>                                                       Add Neo4j config to the app environment
     neo4j:destroy <app>                                                      Remove Neo4j config and container from the app environment
+    neo4j:link <app> <db-app>                                                Link a Neo4j container from another app to this app.
     neo4j:info <app>                                                         Shows status of Neo4j
     neo4j:shell <app>                                                        Enter the neo4j-shell inside the neo4j container
 EOF

@@ -10,11 +10,20 @@ DB_PORT="${NEO4J_PORT:-7474}"
 function neo4j_for_app() {
   verify_app_name "$1"
   DB_VOLUME="$DB_ROOT/$APP"
-  DB_CONTAINER_NAME="plugin_neo4j_${APP}"
-  DB_DATA_CONTAINER_NAME="plugin_neo4j_data_$APP"
+  if [ -s "$DB_VOLUME" ] ; then
+    DB_APP="$(cat "$DB_VOLUME")"
+  else
+    DB_APP="$APP"
+  fi
+  DB_CONTAINER_NAME="plugin_neo4j_${DB_APP}"
+  DB_DATA_CONTAINER_NAME="plugin_neo4j_data_${DB_APP}"
   #DB_PASSWORD_FILE="$DB_VOLUME/pass_$APP"
   DB_HOST="$DB_CONTAINER_LINK"
   DB_REST_URL="http://$DB_CONTAINER_LINK:$DB_PORT/db/data"
+  
+  set +eo pipefail
+  DB_CONTAINER_ID=$(docker ps | grep "$DB_CONTAINER_NAME" | awk '{print $1}')
+  set -eo pipefail
 }
 
 function start_database_container() {
@@ -30,6 +39,8 @@ function start_database_container() {
 }
 
 function ensure_database_container_is_running() {
-  remove_container "$DB_CONTAINER_NAME"
-  start_database_container 2> /dev/null || true
+  if [[ -z "$DB_CONTAINER_ID" ]] ; then 
+    remove_container "$DB_CONTAINER_NAME"
+    start_database_container 2> /dev/null || true
+  fi
 }
