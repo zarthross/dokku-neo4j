@@ -16,4 +16,17 @@ As a pre-requisite, your app must already exist. Create a new Neo4j database by 
     neo4j:create <app>                              Add Neo4j config to the app environment
     neo4j:destroy <app>                             Remove Neo4j config and container from the app environment
     neo4j:info <app>                                Shows status of Neo4j
-	neo4j:shell <app>                               Enter the neo4j-shell inside the neo4j container
+    neo4j:link <app> <db-app>                       Link a Neo4j container from another app to this app.
+    neo4j:unlink <app>                              Unlinks a Neo4j container from this app.
+    neo4j:shell <app>                               Enter the neo4j-shell inside the neo4j container
+    
+    
+## Known Issues
+
+ - You can unlink all of the applications from a database and leave it hanging.
+ 
+## Roadmap
+ 
+ - Authentication Support
+ - Optionally exposing the Neo4j Browser
+ - Listing all neo4j databases and the apps they are linked too.
