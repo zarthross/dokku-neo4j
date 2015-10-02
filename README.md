@@ -1,4 +1,4 @@
-#A Neo4j Plugin for Dokku
+#A Neo4j Plugin for [Dokku Alternative](https://github.com/dokku-alt/dokku-alt)
 ## Installing
 
 To install the dokku-neo4j plugin:
